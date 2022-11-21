@@ -37,7 +37,6 @@ class FlinkInfo(val flinkHome: String) extends Serializable {
   lazy val version: String = {
     val matcher: Matcher = FLINK_SCALA_VERSION_PATTERN.matcher(flinkDistJar.getName)
     matcher.matches()
-    //获取第2个括号的内的值
     matcher.group(2)
   }
 
