@@ -1,6 +1,6 @@
 # flink-submitter-api
 
-[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](README_zb_CN.md)
+[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](README_zh_CN.md)
 [![EN doc](https://img.shields.io/badge/document-English-blue.svg)](README.md)
 ## 1. introduction
 
