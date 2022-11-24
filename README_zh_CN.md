@@ -1,23 +1,28 @@
-# flink-submitter-api
+# flink任务提交器
 
 [![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](README_zb_CN.md)
 [![EN doc](https://img.shields.io/badge/document-English-blue.svg)](README.md)
-## 1. introduction
+## 1. 简介
 
-This project can help you to submit,query,kill flink task in java api.
+因项目，需要在spring boot后台项目中集成flink任务提交，查询之类的功能，所有有了这个项目
 
-## 2. Support mode
+这个项目，可以通过java api的形式，帮助你提交，查询，暂停flink任务，也可以构建和关闭flink yarn session集群。
+
+## 2. 支持以下的Flink运行模式
 
 - Flink local
 - Flink remote
+
 - Flink yarn session
 - Flink yarn per job
 
-## 3. Necessary
+## 3. 主要类
 
-Flink environment is necessary when you submit and kill flink task
+### 3.1 FlinkInfo
 
-```java
+根据Flink运行环境路径地址生成，提交和停止任务时使用
+
+```scala
 class FlinkInfo(val flinkHome: String) extends Serializable {
 
 
@@ -85,11 +90,109 @@ class FlinkInfo(val flinkHome: String) extends Serializable {
 }
 ```
 
+### 3.2 ExecutionMode
+
+执行模式枚举类
+
+```java
+public enum ExecutionMode implements Serializable {
 
 
-## 4.Remote mode example
+    LOCAL(0, "local"),
 
-### 4.1 submit task
+    REMOTE(1, "remote"),
+
+    FLINK_YARN_SESSION(2, "yarn-session"),
+
+    FLINK_YARN_PER_JOB(3,"yarn-per-job");
+
+    private final Integer mode;
+
+    private final String name;
+
+    ExecutionMode(Integer mode, String name) {
+        this.mode = mode;
+        this.name = name;
+    }
+}
+```
+
+### 3.3 ResolveOrder
+
+类加载策略枚举类
+
+```java
+public enum ResolveOrder {
+    /**
+     * parent-first
+     */
+    PARENT_FIRST("parent-first", 0),
+    /**
+     * child-first
+     */
+    CHILD_FIRST("child-first", 1);
+
+    private final String name;
+
+    private final Integer value;
+
+    ResolveOrder(String name, Integer value) {
+        this.name = name;
+        this.value = value;
+    }
+}
+```
+
+### 3.4 FlinkSubmitRequest
+
+用于提交Flink任务
+
+- appName 任务名称
+
+- flinkJarPath jar包地址
+- savePoint 检查的路径
+- flinkParallelism 并行度
+- args  参数集合
+
+```scala
+case class FlinkSubmitRequest(flinkVersion: FlinkInfo,
+                              executionMode: ExecutionMode,
+                              resolveOrder: ResolveOrder,
+                              appName: String,
+                              mainClass: String,
+                              flinkJarPath: String,
+                              savePoint: String,
+                              flinkParallelism: Int,
+                              args: JavaList[String],
+                              extraParameter: JavaMap[String, Any]) {
+
+
+  lazy val effectiveAppName: String = if (this.appName == null) "flink-task" else this.appName
+
+
+  lazy val supportTaskJarFile: File = {
+        new File(flinkJarPath)
+  }
+
+
+  lazy val savepointRestoreSettings: SavepointRestoreSettings = {
+    lazy val allowNonRestoredState: Boolean = Try(
+      extraParameter.get(SavepointConfigOptions.SAVEPOINT_IGNORE_UNCLAIMED_STATE.key).toString.toBoolean).getOrElse(false)
+    savePoint match {
+      case sp if Try(sp.isEmpty).getOrElse(true) => SavepointRestoreSettings.none
+      case sp => SavepointRestoreSettings.forPath(sp, allowNonRestoredState)
+    }
+  }
+}
+```
+
+
+
+## 4.测试用例(remote模式)
+
+其余模式测试用例请参考工程里的代码
+
+### 4.1 提交flink任务
 
 ```java
 public class FlinkSubmitTest {
@@ -124,7 +227,15 @@ public class FlinkSubmitTest {
 }
 ```
 
-### 4.2 query task
+### 4.2 查询flink任务状态
+
+主要参数
+
+- 执行模式
+- flink运行地址
+- jobId
+
+
 
 ```java
 public class FlinkQueryTest {
@@ -140,7 +251,12 @@ public class FlinkQueryTest {
 
 ```
 
-### 4.3 stop task
+### 4.3 停止flink任务
+
+主要参数
+
+- savepoint路径
+- jobId
 
 ```java
 public class FlinkStopTest {
@@ -167,7 +283,12 @@ public class FlinkStopTest {
 }
 ```
 
-### 4.4 deploy and shutdown yarn session
+### 4.4 部署和停止flink yarn session集群
+
+主要参数
+
+- FlinkInfo
+- yarn name
 
 ```java
 public class YarnSessionTest {
@@ -189,3 +310,11 @@ public class YarnSessionTest {
     }
 }
 ```
+
+## 5. 仓库地址
+
+(https://github.com/Chenzhiling/flink-submitter-api)
+
+## 6. 参考
+
+从StreamX项目获取相当多的思路，感谢
