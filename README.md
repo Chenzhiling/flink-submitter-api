@@ -189,3 +189,10 @@ public class YarnSessionTest {
     }
 }
 ```
+
+
+
+## 5 problem
+
+if you can not connect to the yarn，put `hdfs-site.xml`,`yarn-site.xml`,` core-site.xml ` and `worker` in `resources` 。
+![yarn-probelm](./img/yarn_problem.png)
