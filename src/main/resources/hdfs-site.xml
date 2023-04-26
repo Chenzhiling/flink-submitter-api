@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+        <!--集群名称，此值在接下来的配置中将多次出现务必注意同步修改-->
+        <property>
+                <name>dfs.nameservices</name>
+                <value>Ling-Ha</value>
+        </property>
+        <!--所有的namenode列表，此处也只是逻辑名称，非namenode所在的主机名称-->
+        <property>
+                <name>dfs.ha.namenodes.Nanhu-Ha</name>
+                <value>nn1,nn2</value>
+        </property>
+        <!--namenode之间用于RPC通信的地址，value填写namenode所在的主机地址-->
+        <!--默认端口8020，注意MasterChen-Ha与nn1要和上文的配置一致-->
+        <property> 
+                <name>dfs.namenode.rpc-address.Nanhu-Ha.nn1</name> 
+                <value>MasterChen:9000</value> 
+        </property>
+        <!-- namenode的web访问地址，默认端口9870-->
+	<property>
+	       <name>dfs.namenode.http-address.Nanhu-Ha.nn1</name>
+	       <value>MasterChen:9870</value>
+	</property>
+        <!--备份NameNode node2主机配置-->
+        <property>
+                <name>dfs.namenode.rpc-address.Nanhu-Ha.nn2</name>
+                <value>node2:9000</value>
+        </property>
+        <property>
+	       <name>dfs.namenode.http-address.Nanhu-Ha.nn2</name>
+	       <value>node2:9870</value>
+	</property>
+        <!--journalnode主机地址，最少三台，默认端口8485--> 
+        <!--格式为 qjournal://jn1:port;jn2:port;jn3:port/${nameservices}--> 
+        <property>
+               <name>dfs.namenode.shared.edits.dir</name>
+               <value>qjournal://node3:8485;node4:8485;node5:8485/Nanhu-Ha</value>
+        </property>
+        <!--日志文件输出路径，即journalnode读取变更的位置-->
+        <!--NameNode的元数据在JournalNode上的存放位置 --> 
+        <property>
+              <name>dfs.journalnode.edits.dir</name>
+              <value>/usr/local/hadoop/journal</value>
+        </property>
+        <!--启用自动故障转移-->
+        <property>
+             <name>dfs.ha.automatic-failover.enabled</name>
+             <value>true</value>
+        </property>
+        <!--故障自动切换实现类-->
+        <property>
+             <name>dfs.client.failover.proxy.provider.Nanhu-Ha</name>
+             <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+        </property>
+        <!--故障时相互操作方式(namenode要切换active和standby)，选ssh方式-->
+        <property>
+             <name>dfs.ha.fencing.methods</name>
+	     <value>sshfence</value>
+	     <value>shell(true)</value>
+        </property>
+        <!--修改为自己用户的ssh key存放地址-->
+        <property>
+             <name>dfs.ha.fencing.ssh.private-key-files</name>
+	     <value>/home/chenzhiling/.ssh/id_rsa</value>
+        </property>
+        <!--ssh连接超时-->
+        <property>
+             <name>dfs.ha.fencing.ssh.connect-timeout</name>
+             <value>60000</value>
+        </property>
+        <!--*************************************************以上为高可用配置***************************************************-->
+        <!--指定冗余副本个数-->
+        <property>
+                <name>dfs.replication</name>
+                <value>3</value>
+        </property>
+        <!--指定namenode名称空间的存储地址--> 
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:/usr/local/hadoop/tmp/dfs/name</value>
+        </property>
+        <!--指定datanode数据存储地址-->
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:/usr/local/hadoop/tmp/dfs/data</value>
+        </property>
+        <property>
+                <name>dfs.permissions</name>
+                <value>false</value>
+        </property>
+</configuration>
+
